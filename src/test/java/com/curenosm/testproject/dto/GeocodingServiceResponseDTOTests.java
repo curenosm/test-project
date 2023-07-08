@@ -6,9 +6,7 @@ public class GeocodingServiceResponseDTOTests {
 
   @Test
   void verifyToStringMethodContainsAllFields() {
-    GeocodingServiceResponseDTO dto = GeocodingServiceResponseDTO.builder()
-      .build();
-
+    GeocodingServiceResponseDTO dto = GeocodingServiceResponseDTO.builder().build();
     assert dto.toString().contains("zip");
     assert dto.toString().contains("lat");
     assert dto.toString().contains("lon");

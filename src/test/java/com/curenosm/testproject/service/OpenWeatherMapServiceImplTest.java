@@ -1,46 +1,78 @@
 package com.curenosm.testproject.service;
 
-
-import static org.mockito.ArgumentMatchers.any;
-
+import com.curenosm.testproject.configuration.OpenWeatherProps;
 import com.curenosm.testproject.dto.GeocodingServiceResponseDTO;
-import com.curenosm.testproject.exceptions.LocationNotFoundException;
+import com.curenosm.testproject.dto.TimeMachineServiceResponseDTO;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
-import org.springframework.boot.test.context.SpringBootTest;
+
 
 @SpringBootTest
 public class OpenWeatherMapServiceImplTest {
 
   @Mock
-  private OpenWeatherMapServiceImpl service;
+  private RestTemplate restTemplate;
+  @Autowired
+  private OpenWeatherProps props;
+
+  private OpenWeatherMapService service;
+
+  @BeforeEach
+  void setUp () {
+    service = new OpenWeatherMapServiceImpl(restTemplate, props);
+  }
 
   @Test
-  void testGetNewYorkCoordinates() {
+  void testGetMexicoCityCoordinates() {
     GeocodingServiceResponseDTO expected = GeocodingServiceResponseDTO.builder()
-      .lat("0")
-      .lon("0")
+      .lat("19.42847")
+      .lon("-99.12766")
+      .zip("06080")
+      .country("Mexico")
       .build();
 
-    when(service.getCoordinatesByLocationName(any())).thenReturn(Optional.of(expected));
+    when(
+      restTemplate.exchange(
+        any(String.class),
+        any(HttpMethod.class),
+        any(),
+        any(Class.class),
+        anyMap())
+    ).thenReturn(ResponseEntity.ok(
+      """
+      [{
+        "lat": "19.42847",
+        "lon": "-99.12766",
+        "zip": "06080",
+        "country": "Mexico"
+      }]
+      """
+    ));
 
     Optional<GeocodingServiceResponseDTO> coords = service.getCoordinatesByLocationName("New York");
-    assertEquals(coords.get(), expected);
+
+    assert coords.isPresent();
+    assert coords.get().equals(expected);
   }
 
   @Test
   void testGetCoordinatesFromInvalidName() {
     String name = "ThisIsTheNameOfACityThatShould123NotExist";
-    GeocodingServiceResponseDTO expected = null;
 
-    when(service.getCoordinatesByLocationName(name)).thenReturn(null);
-
-    assertThrows(LocationNotFoundException.class, () -> {
-      service.getCoordinatesByLocationName(name);
-    });
+    assert service.getCoordinatesByLocationName(name).equals(Optional.empty());
   }
 
   @Test
@@ -53,11 +85,60 @@ public class OpenWeatherMapServiceImplTest {
       .country("Mexico")
       .build();
 
-    when(service.getCoordinatesByLocationName(any())).thenReturn(
-      Optional.ofNullable(expected)
-    );
+    when(
+      restTemplate.exchange(
+        any(String.class),
+        any(HttpMethod.class),
+        any(),
+        any(Class.class),
+        anyMap())
+    ).thenReturn(ResponseEntity.ok(
+      """
+      [{
+        "lat": "19.42847",
+        "lon": "-99.12766",
+        "zip": "06080",
+        "country": "Mexico"
+      }]
+      """
+    ));
 
     Optional<GeocodingServiceResponseDTO> res = service.getCoordinatesByLocationName(name);
+
+    assert res.isPresent();
+    assert res.get().equals(expected);
+  }
+
+
+  @Test
+  void testGetTenDaysReportFromTimeMachineService() {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    String lat = "19.42847";
+    String lon = "-99.12766";
+    String time = LocalDate.now().format(formatter);
+    String units = "metric";
+    TimeMachineServiceResponseDTO expected = new TimeMachineServiceResponseDTO();
+
+    when(
+      restTemplate.exchange(
+        any(String.class),
+        any(HttpMethod.class),
+        any(),
+        any(Class.class),
+        anyMap())
+    ).thenReturn(ResponseEntity.ok(
+      """
+      [{
+        "lat": "19.42847",
+        "lon": "-99.12766",
+        "zip": "06080",
+        "country": "Mexico"
+      }]
+      """
+    ));
+
+    Optional<TimeMachineServiceResponseDTO> res = service.timeMachine(lat, lon, time, units);
+    assert res.isPresent();
     assert res.get().equals(expected);
   }
 

@@ -6,14 +6,13 @@ import com.curenosm.testproject.dto.TimeMachineServiceResponseDTO;
 import com.curenosm.testproject.exceptions.EmptyCitiesListException;
 import com.curenosm.testproject.exceptions.LocationNotFoundException;
 import com.curenosm.testproject.exceptions.TimeMachineException;
-import com.curenosm.testproject.service.OpenWeatherService;
+import com.curenosm.testproject.service.OpenWeatherMapService;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class WeatherController {
 
-  private final OpenWeatherService service;
+  private final OpenWeatherMapService service;
   private final DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 
   @Autowired
-  public WeatherController (OpenWeatherService service) {
+  public WeatherController (OpenWeatherMapService service) {
     this.service = service;
   }
 
@@ -49,18 +48,21 @@ public class WeatherController {
    */
   @GetMapping("/weather-data")
   public ResponseEntity<List<OneCallServiceResponseDTO>> getForecastAndAirPollution (
-    @RequestParam List<String> cities) {
+    @RequestParam String cities) {
 
     if (ObjectUtils.isEmpty(cities))
       throw new EmptyCitiesListException();
 
-    List<GeocodingServiceResponseDTO> res = cities.stream()
+    String[] citiesArr = cities.split(",");
+
+    List<GeocodingServiceResponseDTO> res = Arrays
+      .stream(citiesArr)
       .map(service::getCoordinatesByLocationName)
       .filter(Optional::isPresent)
       .map(Optional::get)
       .toList();
 
-    if (res.size() != cities.size())
+    if (res.size() != citiesArr.length)
       throw new LocationNotFoundException();
 
     List<OneCallServiceResponseDTO> responses = res.stream()

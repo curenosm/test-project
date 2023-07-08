@@ -6,10 +6,7 @@ public class OneCallServiceResponseDTOTests {
 
   @Test
   void verifyToStringMethodContainsAllFields() {
-    OneCallServiceResponseDTO dto = OneCallServiceResponseDTO.builder()
-
-      .build();
-
+    OneCallServiceResponseDTO dto = OneCallServiceResponseDTO.builder().build();
     assert dto.toString().contains("lat");
     assert dto.toString().contains("lon");
   }

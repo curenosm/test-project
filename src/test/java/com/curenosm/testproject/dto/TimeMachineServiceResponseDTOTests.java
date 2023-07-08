@@ -6,9 +6,7 @@ public class TimeMachineServiceResponseDTOTests {
 
   @Test
   void verifyToStringMethodContainsAllFields() {
-    TimeMachineServiceResponseDTO dto = TimeMachineServiceResponseDTO.builder()
-      .build();
-
+    TimeMachineServiceResponseDTO dto = new TimeMachineServiceResponseDTO();
     assert dto.toString().contains("TimeMachineServiceResponseDTO");
   }
 

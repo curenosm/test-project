@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Binds these Java Objects from the application.yml file for easily maintainability.
+ * Binds these Java Objects from the application.yml file to ease maintainability.
  */
 @Data
 @Component
@@ -19,7 +19,6 @@ public class OpenWeatherProps {
   @NotNull
   @NotBlank
   private String apiKey;
-
-
   private String url;
+  private String sslUrl;
 }
