@@ -1,0 +1,11 @@
+openweathermap:
+  url: "https://api.openweathermap.org"
+  apiKey: ${OPEN_WEATHER_MAP_API_KEY:fe34da28158454991a887ac466d2f4fa}
+spring:
+  security:
+    user:
+      name: ${USER_TEST_USERNAME:user}
+      password: ${USER_TEST_PASSWORD:password}
+  output:
+    ansi:
+      enabled: always
