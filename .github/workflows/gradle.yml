@@ -37,4 +37,4 @@ jobs:
     - name: Test with Gradle
       run: gradle test
     - name: Run Jar
-      run: java -jar build/libs/test-project-1.0.0-SNAPSHOT.jar
+      run: java -jar build/libs/test-project-1.0.0-SNAPSHOT.jar &
