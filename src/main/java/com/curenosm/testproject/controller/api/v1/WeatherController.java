@@ -38,45 +38,40 @@ public class WeatherController {
   private final DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
 
   @Autowired
-  public WeatherController (OpenWeatherMapService service) {
+  public WeatherController(OpenWeatherMapService service) {
     this.service = service;
   }
 
   /**
    * Get a forecast of air pollution and weather of the given list of cities.
+   *
    * @param cities List
    */
   @GetMapping("/weather-data")
-  public ResponseEntity<List<OneCallServiceResponseDTO>> getForecastAndAirPollution (
-    @RequestParam String cities) {
+  public ResponseEntity<List<OneCallServiceResponseDTO>> getForecastAndAirPollution(
+      @RequestParam String cities) {
 
-    if (ObjectUtils.isEmpty(cities))
-      throw new EmptyCitiesListException();
+    if (ObjectUtils.isEmpty(cities)) throw new EmptyCitiesListException();
 
     String[] citiesArr = cities.split(",");
 
-    List<GeocodingServiceResponseDTO> res = Arrays
-      .stream(citiesArr)
-      .map(service::getCoordinatesByLocationName)
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .toList();
+    List<GeocodingServiceResponseDTO> res =
+        Arrays.stream(citiesArr)
+            .map(service::getCoordinatesByLocationName)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
 
-    if (res.size() != citiesArr.length)
-      throw new LocationNotFoundException();
+    if (res.size() != citiesArr.length) throw new LocationNotFoundException();
 
-    List<OneCallServiceResponseDTO> responses = res.stream()
-      .map(response -> service.oneCall(
-        response.getLat(),
-        response.getLon(),
-        "metric")
-      )
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .toList();
+    List<OneCallServiceResponseDTO> responses =
+        res.stream()
+            .map(response -> service.oneCall(response.getLat(), response.getLon(), "metric"))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
 
-    if (responses.size() != res.size())
-      throw new LocationNotFoundException();
+    if (responses.size() != res.size()) throw new LocationNotFoundException();
 
     return ResponseEntity.ok(responses);
   }
@@ -88,25 +83,21 @@ public class WeatherController {
    */
   @GetMapping("/forecast/{city}")
   public ResponseEntity<TimeMachineServiceResponseDTO> getTenDaysForecast(
-    @NotBlank @PathVariable String city) {
+      @NotBlank @PathVariable String city) {
 
-    if (ObjectUtils.isEmpty(city))
-      throw new EmptyCitiesListException();
+    if (ObjectUtils.isEmpty(city)) throw new EmptyCitiesListException();
 
     LocalDate from = LocalDate.now().minusDays(10);
     Optional<GeocodingServiceResponseDTO> coords = service.getCoordinatesByLocationName(city);
 
-    if (coords.isEmpty())
-      throw new LocationNotFoundException();
+    if (coords.isEmpty()) throw new LocationNotFoundException();
 
-    TimeMachineServiceResponseDTO report = service.timeMachine(
-      coords.get().getLat(),
-      coords.get().getLon(),
-      format.format(from),
-      "metric"
-    ).orElseThrow(TimeMachineException::new);
+    TimeMachineServiceResponseDTO report =
+        service
+            .timeMachine(
+                coords.get().getLat(), coords.get().getLon(), format.format(from), "metric")
+            .orElseThrow(TimeMachineException::new);
 
     return ResponseEntity.ok(report);
   }
-
 }

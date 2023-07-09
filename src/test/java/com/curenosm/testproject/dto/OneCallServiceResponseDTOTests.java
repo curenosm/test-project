@@ -10,5 +10,4 @@ public class OneCallServiceResponseDTOTests {
     assert dto.toString().contains("lat");
     assert dto.toString().contains("lon");
   }
-
 }

@@ -13,5 +13,4 @@ public class GeocodingServiceResponseDTOTests {
     assert dto.toString().contains("country");
     assert dto.toString().contains("name");
   }
-
 }

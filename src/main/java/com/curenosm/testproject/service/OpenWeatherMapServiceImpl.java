@@ -19,6 +19,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -34,8 +35,8 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
   private final HttpHeaders headers;
 
   @Autowired
-  public OpenWeatherMapServiceImpl (
-    @Qualifier("openWeatherClient") RestTemplate client, OpenWeatherProps props) {
+  public OpenWeatherMapServiceImpl(
+      @Qualifier("openWeatherClient") RestTemplate client, OpenWeatherProps props) {
     this.client = client;
     this.props = props;
     this.headers = new HttpHeaders();
@@ -44,43 +45,41 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
 
   /**
    * Method used to retrieve the coordinates according to a location.
+   *
    * @param q String representing the location to search E.g: "Mexico City,Mexico".
    * @return A map containing the latitude and longitude of the searched place.
    */
-  public Optional<GeocodingServiceResponseDTO> getCoordinatesByLocationName (String q) {
+  public Optional<GeocodingServiceResponseDTO> getCoordinatesByLocationName(String q) {
     String url = props.getUrl() + "/geo/1.0/direct";
 
     try {
       HttpEntity<?> entity = new HttpEntity<>(headers);
 
-      String urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
-          .queryParam("q", "{q}")
-          .queryParam("appid", "{appid}")
-          .encode()
-          .toUriString();
+      String urlTemplate =
+          UriComponentsBuilder.fromHttpUrl(url)
+              .queryParam("q", "{q}")
+              .queryParam("appid", "{appid}")
+              .encode()
+              .toUriString();
 
-      String body = client.exchange(
-        urlTemplate,
-        HttpMethod.GET,
-        entity,
-        String.class,
-        Map.of(
-          "q", q,
-          "appid", props.getApiKey()
-        )
-      ).getBody();
+      ResponseEntity<String> response =
+          client.exchange(
+              urlTemplate,
+              HttpMethod.GET,
+              entity,
+              String.class,
+              Map.of("q", q, "appid", props.getApiKey()));
 
-      List<GeocodingServiceResponseDTO> res = mapper.readValue(
-        body,
-        new TypeReference<>() {}
-      );
+      if (response == null) throw new LocationNotFoundException();
 
-      if (res == null || res.isEmpty())
-        throw new LocationNotFoundException();
+      String body = response.getBody();
 
-      GeocodingServiceResponseDTO result = res.stream()
-        .findFirst()
-        .orElseThrow(LocationNotFoundException::new);
+      List<GeocodingServiceResponseDTO> res = mapper.readValue(body, new TypeReference<>() {});
+
+      if (res == null || res.isEmpty()) throw new LocationNotFoundException();
+
+      GeocodingServiceResponseDTO result =
+          res.stream().findFirst().orElseThrow(LocationNotFoundException::new);
 
       return Optional.of(result);
     } catch (Exception e) {
@@ -89,7 +88,6 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
 
     return Optional.empty();
   }
-
 
   /**
    * Method intended to get the weather report of a location in the current time
@@ -105,38 +103,35 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
     try {
       HttpEntity<?> entity = new HttpEntity<>(headers);
 
-      String urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
-        .queryParam("lat", "{lat}")
-        .queryParam("lon", "{lon}")
-        .queryParam("units", "{units}")
-        .queryParam("appid", "{appid}")
-        .encode()
-        .toUriString();
+      String urlTemplate =
+          UriComponentsBuilder.fromHttpUrl(url)
+              .queryParam("lat", "{lat}")
+              .queryParam("lon", "{lon}")
+              .queryParam("units", "{units}")
+              .queryParam("appid", "{appid}")
+              .encode()
+              .toUriString();
 
-      String body = client.exchange(
-        urlTemplate,
-        HttpMethod.GET,
-        entity,
-        String.class,
-        Map.of(
-          "lat", lat,
-          "lon", lon,
-          "units", units,
-          "appid", props.getApiKey()
-        )
-      ).getBody();
+      String body =
+          client
+              .exchange(
+                  urlTemplate,
+                  HttpMethod.GET,
+                  entity,
+                  String.class,
+                  Map.of(
+                      "lat", lat,
+                      "lon", lon,
+                      "units", units,
+                      "appid", props.getApiKey()))
+              .getBody();
 
-      List<OneCallServiceResponseDTO> res = mapper.readValue(
-        body,
-        new TypeReference<>() {}
-      );
+      List<OneCallServiceResponseDTO> res = mapper.readValue(body, new TypeReference<>() {});
 
-      if (res == null || res.isEmpty())
-        throw new LocationNotFoundException();
+      if (res == null || res.isEmpty()) throw new LocationNotFoundException();
 
-      OneCallServiceResponseDTO result = res.stream()
-        .findFirst()
-        .orElseThrow(LocationNotFoundException::new);
+      OneCallServiceResponseDTO result =
+          res.stream().findFirst().orElseThrow(LocationNotFoundException::new);
 
       return Optional.of(result);
     } catch (JsonProcessingException | RestClientException e) {
@@ -154,41 +149,42 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
    * @param units Units used to display the information.
    * @return A map containing the required info.
    */
-  public Optional<TimeMachineServiceResponseDTO> timeMachine(String lat, String lon, String time, String units) {
+  public Optional<TimeMachineServiceResponseDTO> timeMachine(
+      String lat, String lon, String time, String units) {
     String url = props.getSslUrl() + "/data/3.0/onecall/timemachine";
 
     try {
       HttpEntity<?> entity = new HttpEntity<>(headers);
 
-      String urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
-        .queryParam("lat", "{lat}")
-        .queryParam("lon", "{lon}")
-        .queryParam("units", "{units}")
-        .queryParam("appid", "{appid}")
-        .encode()
-        .toUriString();
+      String urlTemplate =
+          UriComponentsBuilder.fromHttpUrl(url)
+              .queryParam("lat", "{lat}")
+              .queryParam("lon", "{lon}")
+              .queryParam("units", "{units}")
+              .queryParam("appid", "{appid}")
+              .encode()
+              .toUriString();
 
-      String body = client.exchange(
-        urlTemplate,
-        HttpMethod.GET,
-        entity,
-        String.class,
-        Map.of(
-          "lat", lat,
-          "lon", lon,
-          "units", units,
-          "appid", props.getApiKey()
-        )
-      ).getBody();
+      String body =
+          client
+              .exchange(
+                  urlTemplate,
+                  HttpMethod.GET,
+                  entity,
+                  String.class,
+                  Map.of(
+                      "lat", lat,
+                      "lon", lon,
+                      "units", units,
+                      "appid", props.getApiKey()))
+              .getBody();
 
       List<TimeMachineServiceResponseDTO> res = mapper.readValue(body, new TypeReference<>() {});
 
-      if (res == null || res.isEmpty())
-        throw new LocationNotFoundException();
+      if (res == null || res.isEmpty()) throw new LocationNotFoundException();
 
-      TimeMachineServiceResponseDTO result = res.stream()
-        .findFirst()
-        .orElseThrow(LocationNotFoundException::new);
+      TimeMachineServiceResponseDTO result =
+          res.stream().findFirst().orElseThrow(LocationNotFoundException::new);
 
       return Optional.of(result);
     } catch (JsonMappingException | RestClientException e) {
@@ -199,5 +195,4 @@ public class OpenWeatherMapServiceImpl implements OpenWeatherMapService {
 
     return Optional.empty();
   }
-
 }

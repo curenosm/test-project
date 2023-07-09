@@ -9,5 +9,4 @@ public class TimeMachineServiceResponseDTOTests {
     TimeMachineServiceResponseDTO dto = new TimeMachineServiceResponseDTO();
     assert dto.toString().contains("TimeMachineServiceResponseDTO");
   }
-
 }

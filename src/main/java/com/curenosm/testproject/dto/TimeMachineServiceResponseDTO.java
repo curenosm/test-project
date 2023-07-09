@@ -15,6 +15,4 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 @Builder
-public class TimeMachineServiceResponseDTO {
-
-}
+public class TimeMachineServiceResponseDTO {}

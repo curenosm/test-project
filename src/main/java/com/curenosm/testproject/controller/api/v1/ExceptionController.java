@@ -29,8 +29,7 @@ public class ExceptionController {
   @ExceptionHandler(value = TimeMachineException.class)
   public ResponseEntity<?> errorConsultingTimeMachineService() {
     return new ResponseEntity<>(
-      "There was an error while connecting to an external API.",
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
+        "There was an error while connecting to an external API.",
+        HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
